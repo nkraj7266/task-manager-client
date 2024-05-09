@@ -1,16 +1,26 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
 import styles from "../login/Login.module.css";
+import { login } from "../../redux/slices/userSlice";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
-import axios from "axios";
 
 const Register = () => {
+	const dispatch = useDispatch();
 	const [showPassword, setShowPassword] = useState(false);
 	const [formData, setFormData] = useState({
 		name: "",
 		email: "",
 		password: "",
 	});
+	const user = useSelector((data) => data.user.user);
+
+	if (user) {
+		if (user.role === "user") window.open("/tasks", "_self");
+	}
 
 	const handleInputChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,8 +33,8 @@ const Register = () => {
 				"http://localhost:5000/api/auth/register",
 				formData
 			);
+			dispatch(login(response.data));
 			alert("Registration Successful");
-			console.log(response.data);
 		} catch (error) {
 			console.log(error);
 		} finally {
@@ -89,7 +99,8 @@ const Register = () => {
 						/>
 					</div>
 					<p className={styles.desc}>
-						Already have an account? <a href="/login">Login Here</a>
+						Already have an account?{" "}
+						<Link to="/login">Login Here</Link>
 					</p>
 					<button className={styles.loginBtn} type="submit">
 						Sign Up

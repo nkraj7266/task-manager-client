@@ -1,29 +1,39 @@
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import styles from "./Login.module.css";
+import { login } from "../../redux/slices/userSlice";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 
 const Login = () => {
+	const dispatch = useDispatch();
 	const [showPassword, setShowPassword] = useState(false);
 	const [formData, setFormData] = useState({
 		email: "",
 		password: "",
 	});
+	const user = useSelector((data) => data.user.user);
+
+	if (user) {
+		if (user.role === "user") window.open("/tasks", "_self");
+	}
 
 	const handleInputChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			const response = axios.post(
+			const response = await axios.post(
 				"http://localhost:5000/api/auth/login",
 				formData
 			);
+			dispatch(login(response.data));
 			alert("Login Successful");
-			console.log(response.data);
 		} catch (error) {
 			console.log(error);
 		} finally {
@@ -77,7 +87,7 @@ const Login = () => {
 					</div>
 					<p className={styles.desc}>
 						Don{"'"}t have an account?{" "}
-						<a href="/register">Register Here</a>
+						<Link to="/register">Register Here</Link>
 					</p>
 					<button className={styles.loginBtn} type="submit">
 						Login
