@@ -1,7 +1,8 @@
 import styles from "./Tasks.module.css";
 import modalStyles from "./Modal.module.css";
-// import { useSelector } from "react-redux";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import axios from "axios";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -13,58 +14,53 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import ReactModal from "react-modal";
 
-const TasksData = [
-	{
-		id: 1,
-		title: "Finishing Striver’s Trees Playlist",
-		description:
-			"Will Complete the playlist by 12 PM tommorrow and will be writing notes along with",
-		status: "completed",
-		priority: "medium",
-		dueDate: "2022-09-30",
-	},
-	{
-		id: 2,
-		title: "Finishing Striver’s Trees Playlist",
-		description:
-			"Will Complete the playlist by 12 PM tommorrow and will be writing notes along with",
-		status: "pending",
-		priority: "low",
-		dueDate: "2022-09-30",
-	},
-	{
-		id: 3,
-		title: "Finishing Striver’s Trees Playlist",
-		description:
-			"Will Complete the playlist by 12 PM tommorrow and will be writing notes along with",
-		status: "pending",
-		priority: "low",
-		dueDate: "2022-09-30",
-	},
-];
-
 const Tasks = () => {
-	// const user = useSelector((data) => data.user.user);
-	// console.log(user);
+	const [searchParams] = useSearchParams();
 	const [createTaskModal, setCreateTaskModal] = useState(false);
 	const [editTaskModal, setEditTaskModal] = useState(false);
+	const [editTaskId, setEditTaskId] = useState("");
 	const [deleteTaskId, setDeleteTaskId] = useState("");
+	const [tasks, setTasks] = useState([]);
+
+	const userId = searchParams.get("userId");
+
 	const [taskData, setTaskData] = useState({
 		title: "",
 		description: "",
 		status: "pending",
 		priority: "low",
 		dueDate: "",
+		userId: userId,
 	});
+
+	const gettasks = async () => {
+		try {
+			const response = await axios.get(
+				"http://localhost:5000/api/v1/tasks/all/" + userId
+			);
+			setTasks(response.data);
+		} catch (error) {
+			console.log(error);
+		}
+	};
+
+	useEffect(() => {
+		gettasks();
+	}, []);
 
 	const handleTaskDataChange = (e) => {
 		setTaskData({ ...taskData, [e.target.name]: e.target.value });
 	};
 
-	const handleCreateTask = (e) => {
-		e.preventDefault;
+	const handleCreateTask = async (e) => {
+		e.preventDefault();
 		try {
-			console.log(taskData);
+			const response = await axios.post(
+				"http://localhost:5000/api/v1/tasks/create",
+				taskData
+			);
+			console.log(response.data);
+			alert("Task Created Successfully");
 		} catch (error) {
 			console.log(error);
 		} finally {
@@ -74,21 +70,60 @@ const Tasks = () => {
 				status: "pending",
 				priority: "low",
 				dueDate: "",
+				userId: userId,
 			});
 			setCreateTaskModal(false);
 		}
 	};
 
-	const handleEditTaskData = (taskData) => {
+	const handleDeleteTask = (id) => {
+		try {
+			axios.delete("http://localhost:5000/api/v1/tasks/delete" + id);
+			alert("Task Deleted Successfully");
+			gettasks();
+		} catch (error) {
+			console.log(error);
+		} finally {
+			setDeleteTaskId(() => null);
+		}
+	};
+
+	const handleEditTaskData = (data) => {
 		setEditTaskModal(true);
 		setTaskData({
-			title: taskData.title,
-			description: taskData.description,
-			status: taskData.status,
-			priority: taskData.priority,
-			dueDate: taskData.dueDate,
+			title: data.title,
+			description: data.description,
+			status: data.status,
+			priority: data.priority,
+			dueDate: new Date(data.dueDate).toISOString().split("T")[0],
+			userId: userId,
 		});
 		setCreateTaskModal(true);
+	};
+
+	const handleEditTask = async (e) => {
+		e.preventDefault();
+		try {
+			const response = await axios.put(
+				"http://localhost:5000/api/v1/tasks/edit/" + editTaskId,
+				taskData
+			);
+			console.log(response.data);
+			alert("Task Updated Successfully");
+		} catch (error) {
+			console.log(error);
+		} finally {
+			setTaskData({
+				title: "",
+				description: "",
+				status: "pending",
+				priority: "low",
+				dueDate: "",
+				userId: userId,
+			});
+			setEditTaskModal(false);
+			setCreateTaskModal(false);
+		}
 	};
 
 	return (
@@ -145,6 +180,7 @@ const Tasks = () => {
 										status: "pending",
 										priority: "low",
 										dueDate: "",
+										userId: userId,
 									});
 								}}
 							>
@@ -156,8 +192,8 @@ const Tasks = () => {
 				</div>
 				<div className={styles.container}>
 					<ul className={styles.tasksList}>
-						{TasksData.map((item, idx) => (
-							<div key={idx} className={styles.listItem}>
+						{tasks?.map((item) => (
+							<div key={item.id} className={styles.listItem}>
 								<div className={styles.textBox}>
 									<h2>{item.title}</h2>
 									<p>{item.description}</p>
@@ -232,7 +268,11 @@ const Tasks = () => {
 											<label>Due Date</label>
 											<input
 												type="date"
-												value={item.dueDate}
+												value={
+													new Date(item.dueDate)
+														.toISOString()
+														.split("T")[0]
+												}
 											/>
 										</div>
 									</div>
@@ -242,6 +282,7 @@ const Tasks = () => {
 											className={styles.editIcon}
 											onClick={() => {
 												handleEditTaskData(item);
+												setEditTaskId(item.id);
 											}}
 										/>
 										<FontAwesomeIcon
@@ -253,6 +294,83 @@ const Tasks = () => {
 										/>
 									</div>
 								</div>
+								{deleteTaskId === item.id && (
+									<ReactModal
+										isOpen={deleteTaskId === item.id}
+										onRequestClose={() => {
+											setDeleteTaskId(() => null);
+										}}
+										style={{
+											overlay: {
+												backgroundColor:
+													"rgba(255, 255, 255, 0.8)",
+											},
+											content: {
+												top: "50%",
+												left: "50%",
+												right: "auto",
+												bottom: "auto",
+												marginRight: "-50%",
+												transform:
+													"translate(-50%, -50%)",
+												width: "400px",
+												height: "120px",
+												display: "flex",
+												justifyContent: "center",
+												alignItems: "center",
+												borderWidth: "1px",
+												borderColor: "#000",
+												borderStyle: "solid",
+												borderRadius: "10px",
+											},
+										}}
+									>
+										<div
+											className={modalStyles.modalWrapper}
+										>
+											<div
+												className={
+													modalStyles.modalText
+												}
+											>
+												Are you sure you want to Delete?
+											</div>
+											<div
+												className={
+													modalStyles.modalButton
+												}
+											>
+												<div
+													className={
+														modalStyles.confirmDelBtn
+													}
+													onClick={() => {
+														handleDeleteTask(
+															item.id
+														);
+														setDeleteTaskId(
+															() => null
+														);
+													}}
+												>
+													Delete
+												</div>
+												<div
+													className={
+														modalStyles.cancelBtn2
+													}
+													onClick={() => {
+														setDeleteTaskId(
+															() => null
+														);
+													}}
+												>
+													Cancel
+												</div>
+											</div>
+										</div>
+									</ReactModal>
+								)}
 							</div>
 						))}
 					</ul>
@@ -287,7 +405,11 @@ const Tasks = () => {
 					{editTaskModal ? <h1>Edit Task</h1> : <h1>Create Task</h1>}
 					<form
 						className={modalStyles.form}
-						onSubmit={(e) => handleCreateTask(e)}
+						onSubmit={(e) =>
+							editTaskModal
+								? handleEditTask(e)
+								: handleCreateTask(e)
+						}
 					>
 						<div className={modalStyles.formItem}>
 							<label>
@@ -297,7 +419,7 @@ const Tasks = () => {
 							<input
 								type="text"
 								placeholder="Project Presentation"
-								name="task"
+								name="title"
 								value={taskData.title}
 								onChange={handleTaskDataChange}
 								required

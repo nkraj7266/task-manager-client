@@ -1,25 +1,25 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
 import styles from "../login/Login.module.css";
-import { login } from "../../redux/slices/userSlice";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 
 const Register = () => {
-	const dispatch = useDispatch();
+	const navigate = useNavigate();
+	const [user, setUser] = useState(null);
 	const [showPassword, setShowPassword] = useState(false);
 	const [formData, setFormData] = useState({
 		name: "",
 		email: "",
 		password: "",
 	});
-	const user = useSelector((data) => data.user.user);
 
 	if (user) {
-		if (user.role === "user") window.open("/tasks", "_self");
+		if (user.role === "user") {
+			navigate(`/tasks?userId=${user.id}`);
+		}
 	}
 
 	const handleInputChange = (e) => {
@@ -33,7 +33,7 @@ const Register = () => {
 				"http://localhost:5000/api/auth/register",
 				formData
 			);
-			dispatch(login(response.data));
+			setUser(response.data.user);
 			alert("Registration Successful");
 		} catch (error) {
 			console.log(error);

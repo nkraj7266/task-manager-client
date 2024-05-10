@@ -191,6 +191,7 @@
 .status select {
 	padding: 6px 10px;
 	border: 1px solid #ccc;
+	font-family: "montserrat", sans-serif;
 	border-radius: 20px;
 	cursor: pointer;
 }
@@ -211,6 +212,7 @@
 .priority select {
 	padding: 6px 10px;
 	border: 1px solid #ccc;
+	font-family: "montserrat", sans-serif;
 	border-radius: 20px;
 	cursor: pointer;
 }
@@ -231,6 +233,7 @@
 .dueDate input {
 	padding: 6px 10px;
 	border: 1px solid #ccc;
+	font-family: "montserrat", sans-serif;
 	border-radius: 20px;
 }
 .dueDate input:focus {

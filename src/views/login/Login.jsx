@@ -1,24 +1,25 @@
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import styles from "./Login.module.css";
-import { login } from "../../redux/slices/userSlice";
+import { useNavigate } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 
 const Login = () => {
-	const dispatch = useDispatch();
+	const navigate = useNavigate();
+	const [user, setUser] = useState(null);
 	const [showPassword, setShowPassword] = useState(false);
 	const [formData, setFormData] = useState({
 		email: "",
 		password: "",
 	});
-	const user = useSelector((data) => data.user.user);
 
 	if (user) {
-		if (user.role === "user") window.open("/tasks", "_self");
+		if (user.role === "user") {
+			navigate(`/tasks?userId=${user.id}`);
+		}
 	}
 
 	const handleInputChange = (e) => {
@@ -32,7 +33,7 @@ const Login = () => {
 				"http://localhost:5000/api/auth/login",
 				formData
 			);
-			dispatch(login(response.data));
+			setUser(response.data.user);
 			alert("Login Successful");
 		} catch (error) {
 			console.log(error);
