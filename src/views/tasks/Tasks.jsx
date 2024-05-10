@@ -3,6 +3,7 @@ import modalStyles from "./Modal.module.css";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -15,12 +16,15 @@ import {
 import ReactModal from "react-modal";
 
 const Tasks = () => {
+	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
 	const [createTaskModal, setCreateTaskModal] = useState(false);
 	const [editTaskModal, setEditTaskModal] = useState(false);
 	const [editTaskId, setEditTaskId] = useState("");
 	const [deleteTaskId, setDeleteTaskId] = useState("");
 	const [tasks, setTasks] = useState([]);
+
+	console.log(import.meta.env.VITE_BACKEND_URL);
 
 	const userId = searchParams.get("userId");
 
@@ -36,7 +40,7 @@ const Tasks = () => {
 	const gettasks = async () => {
 		try {
 			const response = await axios.get(
-				"http://localhost:5000/api/v1/tasks/all/" + userId
+				`${import.meta.env.VITE_BACKEND_URL}/api/v1/tasks/all/` + userId
 			);
 			setTasks(response.data);
 		} catch (error) {
@@ -56,7 +60,7 @@ const Tasks = () => {
 		e.preventDefault();
 		try {
 			const response = await axios.post(
-				"http://localhost:5000/api/v1/tasks/create",
+				`${import.meta.env.VITE_BACKEND_URL}/api/v1/tasks/create`,
 				taskData
 			);
 			console.log(response.data);
@@ -78,7 +82,9 @@ const Tasks = () => {
 
 	const handleDeleteTask = (id) => {
 		try {
-			axios.delete("http://localhost:5000/api/v1/tasks/delete" + id);
+			axios.delete(
+				`${import.meta.env.VITE_BACKEND_URL}/api/v1/tasks/delete` + id
+			);
 			alert("Task Deleted Successfully");
 			gettasks();
 		} catch (error) {
@@ -105,7 +111,8 @@ const Tasks = () => {
 		e.preventDefault();
 		try {
 			const response = await axios.put(
-				"http://localhost:5000/api/v1/tasks/edit/" + editTaskId,
+				`${import.meta.env.VITE_BACKEND_URL}/api/v1/tasks/edit/` +
+					editTaskId,
 				taskData
 			);
 			console.log(response.data);
@@ -132,7 +139,12 @@ const Tasks = () => {
 				<div className={styles.header}>
 					<div className={styles.heading}>
 						<h1>My Tasks</h1>
-						<p>
+						<p
+							onClick={() => {
+								localStorage.removeItem("jwt_token");
+								navigate("/");
+							}}
+						>
 							<FontAwesomeIcon
 								icon={faPowerOff}
 								style={{ width: "1.25rem", height: "1.25rem" }}

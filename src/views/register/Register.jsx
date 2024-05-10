@@ -30,10 +30,11 @@ const Register = () => {
 		e.preventDefault();
 		try {
 			const response = await axios.post(
-				"http://localhost:5000/api/auth/register",
+				`${import.meta.env.VITE_BACKEND_URL}/api/auth/register`,
 				formData
 			);
 			setUser(response.data.user);
+			localStorage.setItem("jwt_token", response.data.token);
 			alert("Registration Successful");
 		} catch (error) {
 			console.log(error);
