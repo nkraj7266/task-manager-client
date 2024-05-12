@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "../login/Login.module.css";
@@ -6,9 +6,15 @@ import styles from "../login/Login.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "../../redux/slices/userSlice";
+
+import Loader from "../../components/loader/Loader";
+
 const Register = () => {
 	const navigate = useNavigate();
-	const [user, setUser] = useState(null);
+	const dispatch = useDispatch();
+	const [loading, setLoading] = useState(true);
 	const [showPassword, setShowPassword] = useState(false);
 	const [formData, setFormData] = useState({
 		name: "",
@@ -16,11 +22,19 @@ const Register = () => {
 		password: "",
 	});
 
-	if (user) {
-		if (user.role === "user") {
-			navigate(`/tasks?userId=${user.id}`);
+	const user = useSelector((state) => state.user.user);
+
+	useEffect(() => {
+		if (user) {
+			if (user.role === "user") {
+				navigate(`/tasks?userId=${user.id}`);
+			} else {
+				setLoading(false);
+			}
+		} else {
+			setLoading(false);
 		}
-	}
+	}, [user, navigate]);
 
 	const handleInputChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -33,7 +47,7 @@ const Register = () => {
 				`${import.meta.env.VITE_BACKEND_URL}/api/auth/register`,
 				formData
 			);
-			setUser(response.data.user);
+			dispatch(login(response.data.user));
 			localStorage.setItem("jwt_token", response.data.token);
 			alert("Registration Successful");
 		} catch (error) {
@@ -46,6 +60,10 @@ const Register = () => {
 			});
 		}
 	};
+
+	if (loading) {
+		return <Loader />;
+	}
 
 	return (
 		<section className={styles.login}>

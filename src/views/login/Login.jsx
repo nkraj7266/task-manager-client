@@ -1,26 +1,39 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "./Login.module.css";
-import { useNavigate } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "../../redux/slices/userSlice";
+
+import Loader from "../../components/loader/Loader";
+
 const Login = () => {
+	const dispatch = useDispatch();
 	const navigate = useNavigate();
-	const [user, setUser] = useState(null);
+	const [loading, setLoading] = useState(true);
 	const [showPassword, setShowPassword] = useState(false);
 	const [formData, setFormData] = useState({
 		email: "",
 		password: "",
 	});
 
-	if (user) {
-		if (user.role === "user") {
-			navigate(`/tasks?userId=${user.id}`);
+	const user = useSelector((state) => state.user.user);
+
+	useEffect(() => {
+		if (user) {
+			if (user.role === "user") {
+				navigate(`/tasks?userId=${user.id}`);
+			} else {
+				setLoading(false);
+			}
+		} else {
+			setLoading(false);
 		}
-	}
+	}, [user, navigate]);
 
 	const handleInputChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -33,8 +46,8 @@ const Login = () => {
 				`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`,
 				formData
 			);
-			setUser(response.data.user);
-			localStorage.setItem("jwt_token", response.data.token);
+			dispatch(login(response.data.user));
+			localStorage.setItem("jwt_token", response.data.jwt_token);
 			alert("Login Successful");
 		} catch (error) {
 			console.log(error);
@@ -45,6 +58,10 @@ const Login = () => {
 			});
 		}
 	};
+
+	if (loading) {
+		return <Loader />;
+	}
 
 	return (
 		<section className={styles.login}>

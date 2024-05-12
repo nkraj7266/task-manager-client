@@ -1,9 +1,8 @@
 import styles from "./Tasks.module.css";
 import modalStyles from "./Modal.module.css";
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -15,8 +14,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import ReactModal from "react-modal";
 
+import { useSelector } from "react-redux";
+import Loader from "../../components/loader/Loader";
+
 const Tasks = () => {
 	const navigate = useNavigate();
+	const [loading, setLoading] = useState(true);
 	const [searchParams] = useSearchParams();
 	const [createTaskModal, setCreateTaskModal] = useState(false);
 	const [editTaskModal, setEditTaskModal] = useState(false);
@@ -24,7 +27,19 @@ const Tasks = () => {
 	const [deleteTaskId, setDeleteTaskId] = useState("");
 	const [tasks, setTasks] = useState([]);
 
-	console.log(import.meta.env.VITE_BACKEND_URL);
+	const user = useSelector((state) => state.user.user);
+
+	useEffect(() => {
+		if (user) {
+			if (user.role === "user") {
+				setLoading(false);
+			} else {
+				navigate("/login");
+			}
+		} else {
+			navigate("/login");
+		}
+	}, [user, navigate]);
 
 	const userId = searchParams.get("userId");
 
@@ -59,11 +74,11 @@ const Tasks = () => {
 	const handleCreateTask = async (e) => {
 		e.preventDefault();
 		try {
-			const response = await axios.post(
+			await axios.post(
 				`${import.meta.env.VITE_BACKEND_URL}/api/v1/tasks/create`,
 				taskData
 			);
-			console.log(response.data);
+			gettasks();
 			alert("Task Created Successfully");
 		} catch (error) {
 			console.log(error);
@@ -80,13 +95,14 @@ const Tasks = () => {
 		}
 	};
 
-	const handleDeleteTask = (id) => {
+	const handleDeleteTask = async (id) => {
+		console.log(id);
 		try {
-			axios.delete(
-				`${import.meta.env.VITE_BACKEND_URL}/api/v1/tasks/delete` + id
+			await axios.delete(
+				`${import.meta.env.VITE_BACKEND_URL}/api/v1/tasks/delete/` + id
 			);
-			alert("Task Deleted Successfully");
 			gettasks();
+			alert("Task Deleted Successfully");
 		} catch (error) {
 			console.log(error);
 		} finally {
@@ -107,15 +123,30 @@ const Tasks = () => {
 		setCreateTaskModal(true);
 	};
 
+	const handleEditTaskDetail = (data) => {
+		axios
+			.put(
+				`${import.meta.env.VITE_BACKEND_URL}/api/v1/tasks/edit/` +
+					data.id,
+				data
+			)
+			.then(() => {
+				gettasks();
+			})
+			.catch((error) => {
+				console.log(error);
+			});
+	};
+
 	const handleEditTask = async (e) => {
 		e.preventDefault();
 		try {
-			const response = await axios.put(
+			await axios.put(
 				`${import.meta.env.VITE_BACKEND_URL}/api/v1/tasks/edit/` +
 					editTaskId,
 				taskData
 			);
-			console.log(response.data);
+			gettasks();
 			alert("Task Updated Successfully");
 		} catch (error) {
 			console.log(error);
@@ -132,6 +163,10 @@ const Tasks = () => {
 			setCreateTaskModal(false);
 		}
 	};
+
+	if (loading) {
+		return <Loader />;
+	}
 
 	return (
 		<>
@@ -204,6 +239,11 @@ const Tasks = () => {
 				</div>
 				<div className={styles.container}>
 					<ul className={styles.tasksList}>
+						{tasks?.length === 0 && (
+							<h1 style={{ textAlign: "center" }}>
+								No Tasks Found
+							</h1>
+						)}
 						{tasks?.map((item) => (
 							<div key={item.id} className={styles.listItem}>
 								<div className={styles.textBox}>
@@ -214,66 +254,35 @@ const Tasks = () => {
 									<div className={styles.props}>
 										<div className={styles.status}>
 											<label>Status</label>
-											<select>
-												<option
-													selected={
-														item.status ===
-														"pending"
-													}
-												>
-													Pending
-												</option>
-												<option
-													selected={
-														item.status ===
-														"ongoing"
-													}
-												>
-													Ongoing
-												</option>
-												<option
-													selected={
-														item.status ===
-														"completed"
-													}
-												>
-													Completed
-												</option>
-												<option
-													selected={
-														item.status ===
-														"overdue"
-													}
-												>
-													Overdue
-												</option>
+											<select
+												value={item.status}
+												onChange={(e) => {
+													e.preventDefault();
+													item.status =
+														e.target.value;
+													handleEditTaskDetail(item);
+												}}
+											>
+												<option>Pending</option>
+												<option>Ongoing</option>
+												<option>Completed</option>
+												<option>Overdue</option>
 											</select>
 										</div>
 										<div className={styles.priority}>
 											<label>Priority</label>
-											<select>
-												<option
-													selected={
-														item.priority === "high"
-													}
-												>
-													High
-												</option>
-												<option
-													selected={
-														item.priority ===
-														"medium"
-													}
-												>
-													Medium
-												</option>
-												<option
-													selected={
-														item.priority === "low"
-													}
-												>
-													Low
-												</option>
+											<select
+												value={item.priority}
+												onChange={(e) => {
+													e.preventDefault();
+													item.priority =
+														e.target.value;
+													handleEditTaskDetail(item);
+												}}
+											>
+												<option>High</option>
+												<option>Medium</option>
+												<option>Low</option>
 											</select>
 										</div>
 										<div className={styles.dueDate}>
@@ -285,6 +294,12 @@ const Tasks = () => {
 														.toISOString()
 														.split("T")[0]
 												}
+												onChange={(e) => {
+													e.preventDefault();
+													item.dueDate =
+														e.target.value;
+													handleEditTaskDetail(item);
+												}}
 											/>
 										</div>
 									</div>
