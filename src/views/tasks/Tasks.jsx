@@ -1,7 +1,7 @@
 import styles from "./Tasks.module.css";
 import modalStyles from "./Modal.module.css";
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,13 +14,14 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import ReactModal from "react-modal";
 
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../../redux/slices/userSlice";
 import Loader from "../../components/loader/Loader";
 
 const Tasks = () => {
+	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(true);
-	const [searchParams] = useSearchParams();
 	const [createTaskModal, setCreateTaskModal] = useState(false);
 	const [editTaskModal, setEditTaskModal] = useState(false);
 	const [editTaskId, setEditTaskId] = useState("");
@@ -41,7 +42,7 @@ const Tasks = () => {
 		}
 	}, [user, navigate]);
 
-	const userId = searchParams.get("userId");
+	const userId = user?.id;
 
 	const [taskData, setTaskData] = useState({
 		title: "",
@@ -177,6 +178,7 @@ const Tasks = () => {
 						<p
 							onClick={() => {
 								localStorage.removeItem("jwt_token");
+								dispatch(logout());
 								navigate("/");
 							}}
 						>

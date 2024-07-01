@@ -27,7 +27,7 @@ const Register = () => {
 	useEffect(() => {
 		if (user) {
 			if (user.role === "user") {
-				navigate(`/tasks?userId=${user.id}`);
+				navigate(`/tasks`);
 			} else {
 				setLoading(false);
 			}
