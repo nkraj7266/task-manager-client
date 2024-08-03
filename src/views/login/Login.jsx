@@ -10,11 +10,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { login } from "../../redux/slices/userSlice";
 
 import Loader from "../../components/loader/Loader";
+import Loader2 from "../../components/loader/Loader2";
 
 const Login = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(true);
+	const [loading2, setLoading2] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
 	const [formData, setFormData] = useState({
 		email: "",
@@ -42,13 +44,13 @@ const Login = () => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
+			setLoading2(true);
 			const response = await axios.post(
 				`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`,
 				formData
 			);
 			dispatch(login(response.data.user));
 			localStorage.setItem("jwt_token", response.data.jwt_token);
-			alert("Login Successful");
 		} catch (error) {
 			console.log(error);
 		} finally {
@@ -56,6 +58,7 @@ const Login = () => {
 				email: "",
 				password: "",
 			});
+			setLoading2(false);
 		}
 	};
 
@@ -108,9 +111,19 @@ const Login = () => {
 						Don{"'"}t have an account?{" "}
 						<Link to="/register">Register Here</Link>
 					</p>
-					<button className={styles.loginBtn} type="submit">
-						Login
-					</button>
+					{loading2 ? (
+						<button
+							className={styles.loginBtn}
+							type="submit"
+							disabled
+						>
+							Logging In <Loader2 />
+						</button>
+					) : (
+						<button className={styles.loginBtn} type="submit">
+							Login
+						</button>
+					)}
 				</form>
 			</div>
 		</section>

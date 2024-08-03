@@ -86,6 +86,9 @@
 }
 
 .loginBtn {
+	display: flex;
+	align-items: center;
+	gap: 10px;
 	padding: 12px 40px;
 	background-color: #007bff;
 	color: #fff;

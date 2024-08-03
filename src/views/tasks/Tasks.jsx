@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faPenToSquare,
@@ -17,11 +18,13 @@ import ReactModal from "react-modal";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../redux/slices/userSlice";
 import Loader from "../../components/loader/Loader";
+import Loader2 from "../../components/loader/Loader2";
 
 const Tasks = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(true);
+	const [loading2, setLoading2] = useState(false);
 	const [createTaskModal, setCreateTaskModal] = useState(false);
 	const [editTaskModal, setEditTaskModal] = useState(false);
 	const [editTaskId, setEditTaskId] = useState("");
@@ -75,12 +78,13 @@ const Tasks = () => {
 	const handleCreateTask = async (e) => {
 		e.preventDefault();
 		try {
+			setLoading2(true);
 			await axios.post(
 				`${import.meta.env.VITE_BACKEND_URL}/api/v1/tasks/create`,
 				taskData
 			);
 			gettasks();
-			alert("Task Created Successfully");
+			toast.success("Task Created Successfully");
 		} catch (error) {
 			console.log(error);
 		} finally {
@@ -93,6 +97,7 @@ const Tasks = () => {
 				userId: userId,
 			});
 			setCreateTaskModal(false);
+			setLoading2(false);
 		}
 	};
 
@@ -103,7 +108,7 @@ const Tasks = () => {
 				`${import.meta.env.VITE_BACKEND_URL}/api/v1/tasks/delete/` + id
 			);
 			gettasks();
-			alert("Task Deleted Successfully");
+			toast.success("Task Deleted Successfully");
 		} catch (error) {
 			console.log(error);
 		} finally {
@@ -142,13 +147,14 @@ const Tasks = () => {
 	const handleEditTask = async (e) => {
 		e.preventDefault();
 		try {
+			setLoading2(true);
 			await axios.put(
 				`${import.meta.env.VITE_BACKEND_URL}/api/v1/tasks/edit/` +
 					editTaskId,
 				taskData
 			);
 			gettasks();
-			alert("Task Updated Successfully");
+			toast.success("Task Edited Successfully");
 		} catch (error) {
 			console.log(error);
 		} finally {
@@ -162,6 +168,7 @@ const Tasks = () => {
 			});
 			setEditTaskModal(false);
 			setCreateTaskModal(false);
+			setLoading2(false);
 		}
 	};
 
@@ -353,6 +360,9 @@ const Tasks = () => {
 												borderRadius: "10px",
 											},
 										}}
+										appElement={document.getElementById(
+											"root"
+										)}
 									>
 										<div
 											className={modalStyles.modalWrapper}
@@ -429,6 +439,7 @@ const Tasks = () => {
 						width: "800px",
 					},
 				}}
+				appElement={document.getElementById("root")}
 			>
 				<div className={modalStyles.wrapper}>
 					{editTaskModal ? <h1>Edit Task</h1> : <h1>Create Task</h1>}
@@ -480,27 +491,27 @@ const Tasks = () => {
 								>
 									<option
 										value="pending"
-										selected={taskData.status === "pending"}
+										// selected={taskData.status === "pending"}
 									>
 										Pending
 									</option>
 									<option
 										value="ongoing"
-										selected={taskData.status === "ongoing"}
+										// selected={taskData.status === "ongoing"}
 									>
 										Ongoing
 									</option>
 									<option
 										value="completed"
-										selected={
-											taskData.status === "completed"
-										}
+										// selected={
+										// 	taskData.status === "completed"
+										// }
 									>
 										Completed
 									</option>
 									<option
 										value="overdue"
-										selected={taskData.status === "overdue"}
+										// selected={taskData.status === "overdue"}
 									>
 										Overdue
 									</option>
@@ -521,21 +532,21 @@ const Tasks = () => {
 								>
 									<option
 										value="high"
-										selected={taskData.priority === "high"}
+										// selected={taskData.priority === "high"}
 									>
 										High
 									</option>
 									<option
 										value="medium"
-										selected={
-											taskData.priority === "medium"
-										}
+										// selected={
+										// 	taskData.priority === "medium"
+										// }
 									>
 										Medium
 									</option>
 									<option
 										value="low"
-										selected={taskData.priority === "low"}
+										// selected={taskData.priority === "low"}
 									>
 										Low
 									</option>
@@ -559,12 +570,32 @@ const Tasks = () => {
 							</div>
 						</div>
 						<div className={modalStyles.btns}>
-							<button
-								type="submit"
-								className={modalStyles.createBtn}
-							>
-								{editTaskModal ? "Edit Task" : "Create Task"}
-							</button>
+							{loading2 ? (
+								<button
+									className={modalStyles.createBtn}
+									type="submit"
+									disabled
+								>
+									{editTaskModal ? (
+										<>
+											Editing Task <Loader2 />
+										</>
+									) : (
+										<>
+											Creating Task <Loader2 />
+										</>
+									)}
+								</button>
+							) : (
+								<button
+									className={modalStyles.createBtn}
+									type="submit"
+								>
+									{editTaskModal
+										? "Edit Task"
+										: "Create Task"}
+								</button>
+							)}
 							<button
 								className={modalStyles.cancelBtn}
 								onClick={() => setCreateTaskModal(false)}
