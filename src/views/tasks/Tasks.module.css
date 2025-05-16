@@ -255,3 +255,121 @@
 	color: red;
 	cursor: pointer;
 }
+
+/* ========== Responsiveness =========== */
+@media screen and (max-width: 768px) {
+	.header {
+		padding: 20px 20px;
+	}
+	.heading h1 {
+		font-size: 1.5rem;
+	}
+	.heading p {
+		font-size: 1.25rem;
+	}
+	.search input {
+		padding: 15px 10px 15px 40px;
+	}
+	.filters select {
+		padding: 6px 5px;
+	}
+	.filterDueDate {
+		padding: 6px 5px;
+	}
+	.createTask button {
+		font-size: 1rem;
+		padding: 8px 10px;
+	}
+	.listItem {
+		flex-direction: column;
+		padding: 20px 30px;
+	}
+	.textBox h2 {
+		font-size: 1.25rem;
+	}
+	.textBox p {
+		font-size: 1rem;
+	}
+	.status select {
+		padding: 6px 5px;
+	}
+	.priority select {
+		padding: 6px 5px;
+	}
+	.dueDate input {
+		padding: 6px 5px;
+	}
+	.status,
+	.priority,
+	.dueDate {
+		align-items: center;
+	}
+	.actions {
+		flex-direction: column;
+		gap: 10px;
+	}
+}
+
+/* ========== Mobile Styles =========== */
+@media screen and (max-width: 480px) {
+	.header {
+		padding: 20px 10px;
+	}
+	.heading h1 {
+		font-size: 1.25rem;
+	}
+	.heading p {
+		font-size: 1rem;
+	}
+	.search input {
+		padding: 15px 10px 15px 40px;
+	}
+	.filters select {
+		display: none;
+		padding: 6px 5px;
+	}
+	.filterDueDate {
+		display: none;
+		padding: 6px 5px;
+	}
+	.createTask span {
+		display: none;
+	}
+	.listItem {
+		flex-direction: column;
+		padding: 20px 20px;
+	}
+	.textBox h2 {
+		font-size: 1.25rem;
+		text-align: center;
+	}
+	.textBox p {
+		font-size: 1rem;
+		text-align: center;
+	}
+	.actionsBox {
+		gap: 10px;
+	}
+	.props {
+		flex-direction: column;
+		gap: 10px;
+	}
+	.status select {
+		padding: 6px 5px;
+	}
+	.priority select {
+		padding: 6px 5px;
+	}
+	.dueDate input {
+		padding: 6px 5px;
+	}
+	.status,
+	.priority,
+	.dueDate {
+		align-items: center;
+	}
+	.actions {
+		flex-direction: column;
+		gap: 10px;
+	}
+}

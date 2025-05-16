@@ -181,7 +181,7 @@ const Tasks = () => {
 			<section className={styles.tasks}>
 				<div className={styles.header}>
 					<div className={styles.heading}>
-						<h1>My Tasks</h1>
+						<h1>{user?.name.split(" ")[0]}'s Tasks </h1>
 						<p
 							onClick={() => {
 								localStorage.removeItem("jwt_token");
