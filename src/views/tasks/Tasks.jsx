@@ -30,6 +30,8 @@ const Tasks = () => {
 	const [deleteTaskId, setDeleteTaskId] = useState("");
 	const [tasks, setTasks] = useState([]);
 	const [searchParams, setSearchParams] = useSearchParams("");
+	const [searchTerms, setSearchTerms] = useState("");
+	const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
 	const user = useSelector((state) => state.user.user);
 
@@ -70,6 +72,10 @@ const Tasks = () => {
 			if (status) filters.push(`status=${status}`);
 			if (priority) filters.push(`priority=${priority}`);
 			if (dueDate) filters.push(`dueDate=${dueDate}`);
+			if (debouncedSearchTerm.trim())
+				filters.push(
+					`search=${encodeURIComponent(debouncedSearchTerm.trim())}`
+				);
 
 			if (filters.length > 0) {
 				queryString += "?" + filters.join("&");
@@ -79,14 +85,22 @@ const Tasks = () => {
 			setTasks(response.data);
 		} catch (error) {
 			console.log(error);
-			toast.error("Failed to fetch tasks");
 			setTasks([]);
 		}
 	};
 
+	// Update debounced search term after delay
+	useEffect(() => {
+		const handler = setTimeout(() => {
+			setDebouncedSearchTerm(searchTerms);
+		}, 500); // debounce delay
+
+		return () => clearTimeout(handler);
+	}, [searchTerms]);
+
 	useEffect(() => {
 		gettasks();
-	}, [searchParams]);
+	}, [debouncedSearchTerm, searchParams]);
 
 	const handleTaskDataChange = (e) => {
 		setTaskData({ ...taskData, [e.target.name]: e.target.value });
@@ -230,7 +244,14 @@ const Tasks = () => {
 							icon={faSearch}
 							className={styles.searchIcon}
 						/>
-						<input type="text" placeholder="Search" />
+						<input
+							type="text"
+							placeholder="Search"
+							value={searchTerms}
+							onChange={(e) => {
+								setSearchTerms(e.target.value);
+							}}
+						/>
 					</div>
 					<div className={styles.filtersBox}>
 						<div className={styles.filters}>
