@@ -1,7 +1,7 @@
 import styles from "./Tasks.module.css";
 import modalStyles from "./Modal.module.css";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 
 import { toast } from "react-toastify";
@@ -30,6 +30,7 @@ const Tasks = () => {
 	const [editTaskId, setEditTaskId] = useState("");
 	const [deleteTaskId, setDeleteTaskId] = useState("");
 	const [tasks, setTasks] = useState([]);
+	const [searchParams, setSearchParams] = useSearchParams("");
 
 	const user = useSelector((state) => state.user.user);
 
@@ -58,18 +59,35 @@ const Tasks = () => {
 
 	const gettasks = async () => {
 		try {
-			const response = await axios.get(
-				`${import.meta.env.VITE_BACKEND_URL}/api/v1/tasks/all/` + userId
-			);
+			const status = searchParams.get("status");
+			const priority = searchParams.get("priority");
+			const dueDate = searchParams.get("dueDate");
+
+			let queryString = `${
+				import.meta.env.VITE_BACKEND_URL
+			}/api/v1/tasks/${userId}`;
+			const filters = [];
+
+			if (status) filters.push(`status=${status}`);
+			if (priority) filters.push(`priority=${priority}`);
+			if (dueDate) filters.push(`dueDate=${dueDate}`);
+
+			if (filters.length > 0) {
+				queryString += "?" + filters.join("&");
+			}
+
+			const response = await axios.get(queryString);
 			setTasks(response.data);
 		} catch (error) {
 			console.log(error);
+			toast.error("Failed to fetch tasks");
+			setTasks([]);
 		}
 	};
 
 	useEffect(() => {
 		gettasks();
-	}, []);
+	}, [searchParams]);
 
 	const handleTaskDataChange = (e) => {
 		setTaskData({ ...taskData, [e.target.name]: e.target.value });
@@ -172,6 +190,18 @@ const Tasks = () => {
 		}
 	};
 
+	const handleParamsChange = (key, value) => {
+		if (!value) {
+			searchParams.delete(key);
+		} else {
+			const currentValue = searchParams.get(key);
+			if (currentValue !== value) {
+				searchParams.set(key, value);
+			}
+		}
+		setSearchParams(searchParams, { replace: true });
+	};
+
 	if (loading) {
 		return <Loader />;
 	}
@@ -206,22 +236,101 @@ const Tasks = () => {
 					<div className={styles.filtersBox}>
 						<div className={styles.filters}>
 							<h3>Filters :</h3>
-							<select>
-								<option>Status (All)</option>
-								<option>Pending</option>
-								<option>Ongoing</option>
-								<option>Completed</option>
-								<option>Overdue</option>
+							<select
+								onChange={(e) =>
+									handleParamsChange("status", e.target.value)
+								}
+							>
+								<option
+									value=""
+									selected={!searchParams.get("status")}
+								>
+									Status (All)
+								</option>
+								<option
+									value="pending"
+									selected={
+										searchParams.get("status") === "pending"
+									}
+								>
+									Pending
+								</option>
+								<option
+									value="ongoing"
+									selected={
+										searchParams.get("status") === "ongoing"
+									}
+								>
+									Ongoing
+								</option>
+								<option
+									value="completed"
+									selected={
+										searchParams.get("status") ===
+										"completed"
+									}
+								>
+									Completed
+								</option>
+								<option
+									value="overdue"
+									selected={
+										searchParams.get("status") === "overdue"
+									}
+								>
+									Overdue
+								</option>
 							</select>
-							<select>
-								<option>Priority (All)</option>
-								<option>High</option>
-								<option>Medium</option>
-								<option>Low</option>
+							<select
+								onChange={(e) =>
+									handleParamsChange(
+										"priority",
+										e.target.value
+									)
+								}
+							>
+								<option
+									value=""
+									selected={!searchParams.get("priority")}
+								>
+									Priority (All)
+								</option>
+								<option
+									value="high"
+									selected={
+										searchParams.get("priority") === "high"
+									}
+								>
+									High
+								</option>
+								<option
+									value="medium"
+									selected={
+										searchParams.get("priority") ===
+										"medium"
+									}
+								>
+									Medium
+								</option>
+								<option
+									value="low"
+									selected={
+										searchParams.get("priority") === "low"
+									}
+								>
+									Low
+								</option>
 							</select>
 							<input
 								className={styles.filterDueDate}
 								type="date"
+								value={searchParams.get("dueDate") || ""}
+								onChange={(e) =>
+									handleParamsChange(
+										"dueDate",
+										e.target.value
+									)
+								}
 							/>
 						</div>
 						<div className={styles.createTask}>
@@ -264,7 +373,6 @@ const Tasks = () => {
 										<div className={styles.status}>
 											<label>Status</label>
 											<select
-												value={item.status}
 												onChange={(e) => {
 													e.preventDefault();
 													item.status =
@@ -272,16 +380,47 @@ const Tasks = () => {
 													handleEditTaskDetail(item);
 												}}
 											>
-												<option>Pending</option>
-												<option>Ongoing</option>
-												<option>Completed</option>
-												<option>Overdue</option>
+												<option
+													value="pending"
+													selected={
+														item.status ===
+														"pending"
+													}
+												>
+													Pending
+												</option>
+												<option
+													value="ongoing"
+													selected={
+														item.status ===
+														"ongoing"
+													}
+												>
+													Ongoing
+												</option>
+												<option
+													value="completed"
+													selected={
+														item.status ===
+														"completed"
+													}
+												>
+													Completed
+												</option>
+												<option
+													value="overdue"
+													selected={
+														item.status ===
+														"overdue"
+													}
+												>
+													Overdue
+												</option>
 											</select>
 										</div>
 										<div className={styles.priority}>
 											<label>Priority</label>
 											<select
-												value={item.priority}
 												onChange={(e) => {
 													e.preventDefault();
 													item.priority =
@@ -289,9 +428,31 @@ const Tasks = () => {
 													handleEditTaskDetail(item);
 												}}
 											>
-												<option>High</option>
-												<option>Medium</option>
-												<option>Low</option>
+												<option
+													value="high"
+													selected={
+														item.priority === "high"
+													}
+												>
+													High
+												</option>
+												<option
+													value="medium"
+													selected={
+														item.priority ===
+														"medium"
+													}
+												>
+													Medium
+												</option>
+												<option
+													value="low"
+													selected={
+														item.priority === "low"
+													}
+												>
+													Low
+												</option>
 											</select>
 										</div>
 										<div className={styles.dueDate}>
