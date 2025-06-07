@@ -1,5 +1,4 @@
 import styles from "./Tasks.module.css";
-import modalStyles from "./Modal.module.css";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
@@ -13,12 +12,12 @@ import {
 	faSearch,
 	faTrash,
 } from "@fortawesome/free-solid-svg-icons";
-import ReactModal from "react-modal";
 
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../redux/slices/userSlice";
 import Loader from "../../components/loader/Loader";
-import Loader2 from "../../components/loader/Loader2";
+import DeleteTaskModal from "../../components/modal/DeleteTaskModal";
+import CreateTaskModal from "../../components/modal/CreateTaskModal";
 
 const Tasks = () => {
 	const dispatch = useDispatch();
@@ -237,51 +236,21 @@ const Tasks = () => {
 						<div className={styles.filters}>
 							<h3>Filters :</h3>
 							<select
+								defaultValue={searchParams.get("status") || ""}
 								onChange={(e) =>
 									handleParamsChange("status", e.target.value)
 								}
 							>
-								<option
-									value=""
-									selected={!searchParams.get("status")}
-								>
-									Status (All)
-								</option>
-								<option
-									value="pending"
-									selected={
-										searchParams.get("status") === "pending"
-									}
-								>
-									Pending
-								</option>
-								<option
-									value="ongoing"
-									selected={
-										searchParams.get("status") === "ongoing"
-									}
-								>
-									Ongoing
-								</option>
-								<option
-									value="completed"
-									selected={
-										searchParams.get("status") ===
-										"completed"
-									}
-								>
-									Completed
-								</option>
-								<option
-									value="overdue"
-									selected={
-										searchParams.get("status") === "overdue"
-									}
-								>
-									Overdue
-								</option>
+								<option value="">Status (All)</option>
+								<option value="pending">Pending</option>
+								<option value="ongoing">Ongoing</option>
+								<option value="completed">Completed</option>
+								<option value="overdue">Overdue</option>
 							</select>
 							<select
+								defaultValue={
+									searchParams.get("priority") || ""
+								}
 								onChange={(e) =>
 									handleParamsChange(
 										"priority",
@@ -289,37 +258,10 @@ const Tasks = () => {
 									)
 								}
 							>
-								<option
-									value=""
-									selected={!searchParams.get("priority")}
-								>
-									Priority (All)
-								</option>
-								<option
-									value="high"
-									selected={
-										searchParams.get("priority") === "high"
-									}
-								>
-									High
-								</option>
-								<option
-									value="medium"
-									selected={
-										searchParams.get("priority") ===
-										"medium"
-									}
-								>
-									Medium
-								</option>
-								<option
-									value="low"
-									selected={
-										searchParams.get("priority") === "low"
-									}
-								>
-									Low
-								</option>
+								<option value="">Priority (All)</option>
+								<option value="high">High</option>
+								<option value="medium">Medium</option>
+								<option value="low">Low</option>
 							</select>
 							<input
 								className={styles.filterDueDate}
@@ -373,6 +315,9 @@ const Tasks = () => {
 										<div className={styles.status}>
 											<label>Status</label>
 											<select
+												defaultValue={
+													item.status || "pending"
+												}
 												onChange={(e) => {
 													e.preventDefault();
 													item.status =
@@ -380,40 +325,16 @@ const Tasks = () => {
 													handleEditTaskDetail(item);
 												}}
 											>
-												<option
-													value="pending"
-													selected={
-														item.status ===
-														"pending"
-													}
-												>
+												<option value="pending">
 													Pending
 												</option>
-												<option
-													value="ongoing"
-													selected={
-														item.status ===
-														"ongoing"
-													}
-												>
+												<option value="ongoing">
 													Ongoing
 												</option>
-												<option
-													value="completed"
-													selected={
-														item.status ===
-														"completed"
-													}
-												>
+												<option value="completed">
 													Completed
 												</option>
-												<option
-													value="overdue"
-													selected={
-														item.status ===
-														"overdue"
-													}
-												>
+												<option value="overdue">
 													Overdue
 												</option>
 											</select>
@@ -421,6 +342,9 @@ const Tasks = () => {
 										<div className={styles.priority}>
 											<label>Priority</label>
 											<select
+												defaultValue={
+													item.priority || "low"
+												}
 												onChange={(e) => {
 													e.preventDefault();
 													item.priority =
@@ -428,31 +352,13 @@ const Tasks = () => {
 													handleEditTaskDetail(item);
 												}}
 											>
-												<option
-													value="high"
-													selected={
-														item.priority === "high"
-													}
-												>
+												<option value="high">
 													High
 												</option>
-												<option
-													value="medium"
-													selected={
-														item.priority ===
-														"medium"
-													}
-												>
+												<option value="medium">
 													Medium
 												</option>
-												<option
-													value="low"
-													selected={
-														item.priority === "low"
-													}
-												>
-													Low
-												</option>
+												<option value="low">Low</option>
 											</select>
 										</div>
 										<div className={styles.dueDate}>
@@ -492,281 +398,29 @@ const Tasks = () => {
 									</div>
 								</div>
 								{deleteTaskId === item.id && (
-									<ReactModal
-										isOpen={deleteTaskId === item.id}
-										onRequestClose={() => {
-											setDeleteTaskId(() => null);
-										}}
-										style={{
-											overlay: {
-												backgroundColor:
-													"rgba(255, 255, 255, 0.8)",
-											},
-											content: {
-												top: "50%",
-												left: "50%",
-												right: "auto",
-												bottom: "auto",
-												marginRight: "-50%",
-												transform:
-													"translate(-50%, -50%)",
-												width: "400px",
-												height: "120px",
-												display: "flex",
-												justifyContent: "center",
-												alignItems: "center",
-												borderWidth: "1px",
-												borderColor: "#000",
-												borderStyle: "solid",
-												borderRadius: "10px",
-											},
-										}}
-										appElement={document.getElementById(
-											"root"
-										)}
-									>
-										<div
-											className={modalStyles.modalWrapper}
-										>
-											<div
-												className={
-													modalStyles.modalText
-												}
-											>
-												Are you sure you want to Delete?
-											</div>
-											<div
-												className={
-													modalStyles.modalButton
-												}
-											>
-												<div
-													className={
-														modalStyles.confirmDelBtn
-													}
-													onClick={() => {
-														handleDeleteTask(
-															item.id
-														);
-														setDeleteTaskId(
-															() => null
-														);
-													}}
-												>
-													Delete
-												</div>
-												<div
-													className={
-														modalStyles.cancelBtn2
-													}
-													onClick={() => {
-														setDeleteTaskId(
-															() => null
-														);
-													}}
-												>
-													Cancel
-												</div>
-											</div>
-										</div>
-									</ReactModal>
+									<DeleteTaskModal
+										deleteTaskId={deleteTaskId}
+										setDeleteTaskId={setDeleteTaskId}
+										item={item}
+										handleDeleteTask={handleDeleteTask}
+									/>
 								)}
 							</div>
 						))}
 					</ul>
 				</div>
 			</section>
-			<ReactModal
-				isOpen={createTaskModal}
-				onRequestClose={() => {
-					setCreateTaskModal(false);
-					setEditTaskModal(false);
-				}}
-				style={{
-					overlay: {
-						backgroundColor: "rgba(255, 255, 255, 0.6)",
-					},
-					content: {
-						top: "50%",
-						left: "50%",
-						right: "auto",
-						bottom: "auto",
-						marginRight: "-50%",
-						transform: "translate(-50%, -50%)",
-						borderWidth: "1px",
-						borderColor: "#000",
-						borderStyle: "solid",
-						borderRadius: "10px",
-						width: "800px",
-					},
-				}}
-				appElement={document.getElementById("root")}
-			>
-				<div className={modalStyles.wrapper}>
-					{editTaskModal ? <h1>Edit Task</h1> : <h1>Create Task</h1>}
-					<form
-						className={modalStyles.form}
-						onSubmit={(e) =>
-							editTaskModal
-								? handleEditTask(e)
-								: handleCreateTask(e)
-						}
-					>
-						<div className={modalStyles.formItem}>
-							<label>
-								Task
-								<span className={modalStyles.required}> *</span>
-							</label>
-							<input
-								type="text"
-								placeholder="Project Presentation"
-								name="title"
-								value={taskData.title}
-								onChange={handleTaskDataChange}
-								required
-							/>
-						</div>
-						<div className={modalStyles.formItem}>
-							<label>Description</label>
-							<textarea
-								type="text"
-								name="description"
-								value={taskData.description}
-								onChange={handleTaskDataChange}
-								placeholder="Will be presenting the project in front of the team"
-							/>
-						</div>
-						<div className={modalStyles.taskPropsBox}>
-							<div className={modalStyles.status}>
-								<label>
-									Status
-									<span className={modalStyles.required}>
-										{" "}
-										*
-									</span>
-								</label>
-								<select
-									name="status"
-									value={taskData.status}
-									onChange={handleTaskDataChange}
-								>
-									<option
-										value="pending"
-										// selected={taskData.status === "pending"}
-									>
-										Pending
-									</option>
-									<option
-										value="ongoing"
-										// selected={taskData.status === "ongoing"}
-									>
-										Ongoing
-									</option>
-									<option
-										value="completed"
-										// selected={
-										// 	taskData.status === "completed"
-										// }
-									>
-										Completed
-									</option>
-									<option
-										value="overdue"
-										// selected={taskData.status === "overdue"}
-									>
-										Overdue
-									</option>
-								</select>
-							</div>
-							<div className={modalStyles.priority}>
-								<label>
-									Priority
-									<span className={modalStyles.required}>
-										{" "}
-										*
-									</span>
-								</label>
-								<select
-									name="priority"
-									value={taskData.priority}
-									onChange={handleTaskDataChange}
-								>
-									<option
-										value="high"
-										// selected={taskData.priority === "high"}
-									>
-										High
-									</option>
-									<option
-										value="medium"
-										// selected={
-										// 	taskData.priority === "medium"
-										// }
-									>
-										Medium
-									</option>
-									<option
-										value="low"
-										// selected={taskData.priority === "low"}
-									>
-										Low
-									</option>
-								</select>
-							</div>
-							<div className={modalStyles.dueDate}>
-								<label>
-									Due Date
-									<span className={modalStyles.required}>
-										{" "}
-										*
-									</span>
-								</label>
-								<input
-									type="date"
-									name="dueDate"
-									value={taskData.dueDate}
-									onChange={handleTaskDataChange}
-									required
-								/>
-							</div>
-						</div>
-						<div className={modalStyles.btns}>
-							{loading2 ? (
-								<button
-									className={modalStyles.createBtn}
-									type="submit"
-									disabled
-								>
-									{editTaskModal ? (
-										<>
-											Editing Task <Loader2 />
-										</>
-									) : (
-										<>
-											Creating Task <Loader2 />
-										</>
-									)}
-								</button>
-							) : (
-								<button
-									className={modalStyles.createBtn}
-									type="submit"
-								>
-									{editTaskModal
-										? "Edit Task"
-										: "Create Task"}
-								</button>
-							)}
-							<button
-								className={modalStyles.cancelBtn}
-								onClick={() => setCreateTaskModal(false)}
-							>
-								Cancel
-							</button>
-						</div>
-					</form>
-				</div>
-			</ReactModal>
+			<CreateTaskModal
+				createTaskModal={createTaskModal}
+				setCreateTaskModal={setCreateTaskModal}
+				taskData={taskData}
+				handleTaskDataChange={handleTaskDataChange}
+				handleCreateTask={handleCreateTask}
+				loading2={loading2}
+				editTaskModal={editTaskModal}
+				setEditTaskModal={setEditTaskModal}
+				handleEditTask={handleEditTask}
+			/>
 		</>
 	);
 };
